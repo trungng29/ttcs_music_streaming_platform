@@ -10,11 +10,12 @@ import songRoutes from "./routes/song.route.js";
 import albumRoutes from "./routes/album.route.js";
 import statRoutes from "./routes/stat.route.js";
 
-
 dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT
+
+app.use(express.json()); //to parse req.body as json
 
 app.use("/api/users", userRoutes)
 app.use("/api/auth", authRoutes);
