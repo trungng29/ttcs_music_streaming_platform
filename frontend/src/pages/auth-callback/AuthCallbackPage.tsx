@@ -1,7 +1,7 @@
 const AuthCallbackPage = () => {
   return (
     <div>
-      <h1> Auth call back page </h1>
+      <h1> Auth Callback Page </h1>
     </div>
   )
 }
