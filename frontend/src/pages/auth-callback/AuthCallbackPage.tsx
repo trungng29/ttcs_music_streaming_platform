@@ -9,6 +9,7 @@ const AuthCallbackPage = () => {
 	const { isLoaded, user } = useUser();
 	const navigate = useNavigate();
 	const syncAttempted = useRef(false);
+	// const { songs, albums, fetchAlbums } = useMusicStore();
 
 	useEffect(() => {
 		const syncUser = async () => {
