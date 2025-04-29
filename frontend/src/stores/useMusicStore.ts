@@ -1,9 +1,10 @@
 import { axiosInstance } from "@/lib/axios";
+import { Album, Song } from "@/types";
 import { create } from "zustand";
 
 interface MusicStore {
-  songs: any[]; // Replace with actual type
-  albums: any[]; // Replace with actual type
+  songs: Song[]; // Replace with actual type
+  albums: Album[]; // Replace with actual type
   isLoading: boolean;
   error: string | null; // Error message if any
 
