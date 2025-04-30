@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useMusicStore } from "@/stores/useMusicStore";
-import { Clock, Pause, Play } from "lucide-react";
+import { Clock, Play } from "lucide-react";
 import { useEffect } from "react";
 import { useParams } from "react-router-dom";
 
@@ -12,14 +12,16 @@ export const formatDuration = (seconds: number) => {
 };
 
 const AlbumPage = () => {
-  const { albumId } = useParams();
+  const { albumId } = useParams(); // lấy albumId từ URL 
 
-  const { fetchAlbumById, currentAlbum, isLoading } = useMusicStore();
+  const { fetchAlbumById, currentAlbum, isLoading } = useMusicStore(); // truy cập store Zustand để gọi API và lấy state
 
+  // Gọi fetchAlbumById() mỗi khi component mount hoặc albumId đổi — để load dữ liệu album từ server.
   useEffect(() => {
     if (albumId) fetchAlbumById(albumId);
   }, [fetchAlbumById, albumId]);
 
+  // Nếu dữ liệu đang được tải, không render gì cả
   if (isLoading) return null;
 
   return (
