@@ -3,29 +3,32 @@ import { Album, Song } from "@/types";
 import { create } from "zustand";
 
 interface MusicStore {
-  songs: Song[]; // Replace with actual type
-  albums: Album[]; // Replace with actual type
-  isLoading: boolean;
-  error: string | null; // Error message if any
-  currentAlbum: Album | null;
+  songs: Song[];               // Danh sách bài hát
+  albums: Album[];             // Danh sách album
+  isLoading: boolean;          // Cờ báo đang tải dữ liệu hay không
+  error: string | null;        // Thông báo lỗi nếu có
+  currentAlbum: Album | null;  // Album đang được chọn
 
-  fetchAlbums: () => Promise<void>; // Function to fetch albums
-  fetchAlbumById: (id: string) => Promise<void>;
+  fetchAlbums: () => Promise<void>;               // Hàm fetch tất cả album
+  fetchAlbumById: (id: string) => Promise<void>;  // Hàm fetch album theo id
 }
 
 export const useMusicStore = create<MusicStore>((set) => ({
+  // Giá trị khởi tạo cho state
   albums: [],
   songs: [],
   isLoading: false,
   error: null,
   currentAlbum: null,
+  // Khi ứng dụng bắt đầu, chưa có bài hát nào, chưa có album nào, chưa xảy ra lỗi gì.
 
   fetchAlbums: async () => {
-    // data fetch logic...
+    // Đầu tiên set isLoading: true, xoá lỗi cũ (nếu có)
     set({
       isLoading: true,
       error: null,
     });
+    
     try {
       const response = await axiosInstance.get("/albums");
       set({
