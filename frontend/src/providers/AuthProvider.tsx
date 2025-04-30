@@ -1,4 +1,5 @@
 import { axiosInstance } from "@/lib/axios";
+import { useAuthStore } from "@/stores/useAuthStore";
 import { useAuth } from "@clerk/clerk-react";
 import { Loader } from "lucide-react";
 import { useEffect, useState } from "react";
@@ -21,6 +22,7 @@ const updateApiToken = (token: string | null) => {
 const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const { getToken } = useAuth();
   const [loading, setLoading] = useState(true);
+  const { checkAdminStatus } = useAuthStore();
 
   useEffect(() => {
     const initAuth = async () => {
@@ -29,7 +31,7 @@ const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         updateApiToken(token); // cập nhật token vào axios
 
         if (token) {
-          // todo
+          await checkAdminStatus(); // kiểm tra xem có phải admin ko
         }
       } catch (error: any) {
         updateApiToken(null); // lỗi thì xóa token
