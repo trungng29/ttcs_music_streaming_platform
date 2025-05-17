@@ -26,10 +26,11 @@ const AlbumPage = () => {
 	const handlePlayAlbum = () => {
 		if (!currentAlbum) return;
 
+		// Kiểm tra xem album hiện tại có đang phát không
 		const isCurrentAlbumPlaying = currentAlbum?.songs.some((song) => song._id === currentSong?._id);
-		if (isCurrentAlbumPlaying) togglePlay();
+		if (isCurrentAlbumPlaying) togglePlay(); // Nếu đang phát thì pause
 		else {
-			// start playing the album from the beginning
+			// Nếu chưa phát thì phát từ đầu
 			playAlbum(currentAlbum?.songs, 0);
 		}
 	};
@@ -37,6 +38,7 @@ const AlbumPage = () => {
 	const handlePlaySong = (index: number) => {
 		if (!currentAlbum) return;
 
+		// Phát bài hát tại vị trí index
 		playAlbum(currentAlbum?.songs, index);
 	};
 
