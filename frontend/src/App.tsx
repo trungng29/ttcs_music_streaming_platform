@@ -6,6 +6,7 @@ import MainLayout from "./layout/MainLayout";
 import ChatPage from "./pages/chat/ChatPage";
 import AlbumPage from "./pages/album/AlbumPage";
 import SongPage from "./pages/song/SongPage";
+import SearchPage from "./pages/Search/SearchPage";
 
 function App() {
   return (
@@ -23,6 +24,7 @@ function App() {
 
         <Route element={<MainLayout />}>
           <Route path="/" element={<HomePage />} />
+          <Route path='/search' element={<SearchPage />} />
           <Route path="/chat" element={<ChatPage />} />
           <Route path='/albums/:albumId' element={<AlbumPage />} />
           <Route path='/songs/:songId' element={<SongPage />} />
