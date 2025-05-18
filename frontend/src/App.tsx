@@ -7,6 +7,8 @@ import ChatPage from "./pages/chat/ChatPage";
 import AlbumPage from "./pages/album/AlbumPage";
 import SongPage from "./pages/song/SongPage";
 import SearchPage from "./pages/Search/SearchPage";
+import AdminPage from "./pages/admin/AdminPage";
+import { Toaster } from "react-hot-toast"
 
 function App() {
   return (
@@ -21,7 +23,7 @@ function App() {
           }
         />
         <Route path="/auth-callback" element={<AuthCallbackPage />} />
-
+        <Route path="/admin" element={<AdminPage />} />
         <Route element={<MainLayout />}>
           <Route path="/" element={<HomePage />} />
           <Route path='/search' element={<SearchPage />} />
@@ -30,6 +32,7 @@ function App() {
           <Route path='/songs/:songId' element={<SongPage />} />
         </Route>
       </Routes>
+      <Toaster />
     </>
   );
 }
