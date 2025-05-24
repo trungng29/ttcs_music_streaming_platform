@@ -1,9 +1,12 @@
 import { useMusicStore } from "@/stores/useMusicStore";
 import FeaturedGridSkeleton from "@/components/skeletons/FeaturedGridSkeleton";
 import PlayButton from "./PlayButton";
+import { useNavigate } from "react-router-dom";
+
 
 const FeaturedSection = () => {
 	const { isLoading, featuredSongs, error } = useMusicStore();
+	const navigate = useNavigate();
 
 	if (isLoading) return <FeaturedGridSkeleton />;
 
@@ -16,6 +19,7 @@ const FeaturedSection = () => {
 					key={song._id}
 					className='flex items-center bg-zinc-800/50 rounded-md overflow-hidden
          hover:bg-zinc-700/50 transition-colors group cursor-pointer relative'
+					onClick={() => navigate(`/songs/${song._id}`)}
 				>
 					<img
 						src={song.imageUrl}

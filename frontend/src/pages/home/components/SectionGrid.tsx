@@ -2,6 +2,7 @@ import { Song } from "@/types";
 import SectionGridSkeleton from "./SectionGridSkeleton";
 import { Button } from "@/components/ui/button";
 import PlayButton from "./PlayButton";
+import { useNavigate } from "react-router-dom";
 
 type SectionGridProps = {
 	title: string;
@@ -10,6 +11,8 @@ type SectionGridProps = {
 };
 const SectionGrid = ({ songs, title, isLoading }: SectionGridProps) => {
 	if (isLoading) return <SectionGridSkeleton />;
+
+	const navigate = useNavigate();
 
 	return (
 		<div className='mb-8'>
@@ -25,6 +28,7 @@ const SectionGrid = ({ songs, title, isLoading }: SectionGridProps) => {
 					<div
 						key={song._id}
 						className='bg-zinc-800/40 p-4 rounded-md hover:bg-zinc-700/40 transition-all group cursor-pointer'
+						onClick={() => navigate(`/songs/${song._id}`)}
 					>
 						<div className='relative mb-4'>
 							<div className='aspect-square rounded-md shadow-lg overflow-hidden'>

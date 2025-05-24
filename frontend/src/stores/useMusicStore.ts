@@ -2,6 +2,8 @@ import { axiosInstance } from "@/lib/axios";
 import { Album, Song, Stats } from "@/types";
 import toast from "react-hot-toast";
 import { create } from "zustand";
+import { jwtDecode } from "jwt-decode";
+import { useAuth } from "@clerk/clerk-react";
 
 interface MusicStore {
 	songs: Song[];
@@ -9,6 +11,7 @@ interface MusicStore {
 	isLoading: boolean;
 	error: string | null;
 	currentAlbum: Album | null;
+	currentSong: Song | null;
 	featuredSongs: Song[];
 	madeForYouSongs: Song[];
 	trendingSongs: Song[];
@@ -16,6 +19,7 @@ interface MusicStore {
 
 	fetchAlbums: () => Promise<void>;
 	fetchAlbumById: (id: string) => Promise<void>;
+	fetchSongById: (id: string) => Promise<void>;
 	fetchFeaturedSongs: () => Promise<void>;
 	fetchMadeForYouSongs: () => Promise<void>;
 	fetchTrendingSongs: () => Promise<void>;
@@ -23,6 +27,8 @@ interface MusicStore {
 	fetchSongs: () => Promise<void>;
 	deleteSong: (id: string) => Promise<void>;
 	deleteAlbum: (id: string) => Promise<void>;
+	likeSong: (userId: string, token: string, songId: string) => Promise<void>;
+	unlikeSong: (userId: string, token: string, songId: string) => Promise<void>;
 }
 
 export const useMusicStore = create<MusicStore>((set) => ({
@@ -31,6 +37,7 @@ export const useMusicStore = create<MusicStore>((set) => ({
 	isLoading: false,
 	error: null,
 	currentAlbum: null,
+	currentSong: null,
 	madeForYouSongs: [],
 	featuredSongs: [],
 	trendingSongs: [],
@@ -125,6 +132,18 @@ export const useMusicStore = create<MusicStore>((set) => ({
 		}
 	},
 
+	fetchSongById: async (id) => {
+		set({ isLoading: true, error: null });
+		try {
+			const response = await axiosInstance.get(`/songs/${id}`);
+			set({ currentSong: response.data });
+		} catch (error: any) {
+			set({ error: error.response.data.message });
+		} finally {
+			set({ isLoading: false });
+		}
+	},
+
 	fetchFeaturedSongs: async () => {
 		set({ isLoading: true, error: null });
 		try {
@@ -158,6 +177,34 @@ export const useMusicStore = create<MusicStore>((set) => ({
 			set({ error: error.response.data.message });
 		} finally {
 			set({ isLoading: false });
+		}
+	},
+
+	likeSong: async (userId: string, token: string, songId: string) => {
+		try {
+			const response = await axiosInstance.post(
+				`/users/${userId}/like/${songId}`,
+				{},
+				{ headers: { Authorization: `Bearer ${token}` } }
+			);
+			return response.data;
+		} catch (error: any) {
+			console.error("Like song error:", error);
+			throw new Error(error.response?.data?.message || "Không thể thích bài hát");
+		}
+	},
+
+	unlikeSong: async (userId: string, token: string, songId: string) => {
+		try {
+			const response = await axiosInstance.post(
+				`/users/${userId}/unlike/${songId}`,
+				{},
+				{ headers: { Authorization: `Bearer ${token}` } }
+			);
+			return response.data;
+		} catch (error: any) {
+			console.error("Unlike song error:", error);
+			throw new Error(error.response?.data?.message || "Không thể bỏ thích bài hát");
 		}
 	},
 }));

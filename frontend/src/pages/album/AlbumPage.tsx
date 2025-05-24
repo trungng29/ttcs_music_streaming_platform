@@ -2,9 +2,13 @@ import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useMusicStore } from "@/stores/useMusicStore";
 import { usePlayerStore } from "@/stores/usePlayerStore";
-import { Clock, Pause, Play } from "lucide-react";
-import { useEffect } from "react";
+import { Clock, Pause, Play, Heart } from "lucide-react";
+import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
+import { useUser, useAuth } from "@clerk/clerk-react";
+import { useUserStore } from "@/stores/useUserStore";
+import { toast } from "react-hot-toast";
+import { jwtDecode } from "jwt-decode";
 
 export const formatDuration = (seconds: number) => {
 	const minutes = Math.floor(seconds / 60);
@@ -14,47 +18,74 @@ export const formatDuration = (seconds: number) => {
 
 const AlbumPage = () => {
 	const { albumId } = useParams();
-	const { fetchAlbumById, currentAlbum, isLoading } = useMusicStore();
+	const { fetchAlbumById, currentAlbum, isLoading, likeSong, unlikeSong } = useMusicStore();
 	const { currentSong, isPlaying, playAlbum, togglePlay } = usePlayerStore();
+	const { user: clerkUser } = useUser();
+	const userId = clerkUser?.id;
+	const { user, fetchUser } = useUserStore();
+	const likedSongs = user?.likedSongs || [];
+	const [loadingLike, setLoadingLike] = useState<string | null>(null);
+	const { getToken } = useAuth();
 
 	useEffect(() => {
 		if (albumId) fetchAlbumById(albumId);
 	}, [fetchAlbumById, albumId]);
+
+	useEffect(() => {
+		if (userId) fetchUser(userId);
+	}, [userId, fetchUser]);
 
 	if (isLoading) return null;
 
 	const handlePlayAlbum = () => {
 		if (!currentAlbum) return;
 
-		// Kiểm tra xem album hiện tại có đang phát không
 		const isCurrentAlbumPlaying = currentAlbum?.songs.some((song) => song._id === currentSong?._id);
-		if (isCurrentAlbumPlaying) togglePlay(); // Nếu đang phát thì pause
+		if (isCurrentAlbumPlaying) togglePlay();
 		else {
-			// Nếu chưa phát thì phát từ đầu
 			playAlbum(currentAlbum?.songs, 0);
 		}
 	};
 
 	const handlePlaySong = (index: number) => {
 		if (!currentAlbum) return;
-
-		// Phát bài hát tại vị trí index
 		playAlbum(currentAlbum?.songs, index);
+	};
+
+	const handleLikeSong = async (songId: string, isLiked: boolean) => {
+		if (!userId) return;
+		try {
+			setLoadingLike(songId);
+			const token = await getToken();
+			if (!token) throw new Error("Không tìm thấy token");
+
+			if (isLiked) {
+				await unlikeSong(userId, token, songId);
+				await fetchUser(userId);
+				toast.success("Đã xóa khỏi bài hát yêu thích");
+			} else {
+				await likeSong(userId, token, songId);
+				await fetchUser(userId);
+				toast.success("Đã thêm vào bài hát yêu thích");
+			}
+		} catch (error) {
+			console.error('Error in handleLikeSong:', error);
+			toast.error("Có lỗi xảy ra");
+		} finally {
+			setLoadingLike(null);
+		}
 	};
 
 	return (
 		<div className='h-full'>
 			<ScrollArea className='h-full rounded-md'>
-				{/* Main Content */}
 				<div className='relative min-h-full'>
-					{/* bg gradient */}
 					<div
 						className='absolute inset-0 bg-gradient-to-b from-[#5038a0]/80 via-zinc-900/80
 					 to-zinc-900 pointer-events-none'
 						aria-hidden='true'
 					/>
 
-					{/* Content */}
 					<div className='relative z-10'>
 						<div className='flex p-6 gap-6 pb-8'>
 							<img
@@ -73,7 +104,6 @@ const AlbumPage = () => {
 							</div>
 						</div>
 
-						{/* play button */}
 						<div className='px-6 pb-4 flex items-center gap-6'>
 							<Button
 								onClick={handlePlayAlbum}
@@ -89,9 +119,7 @@ const AlbumPage = () => {
 							</Button>
 						</div>
 
-						{/* Table Section */}
 						<div className='bg-black/20 backdrop-blur-sm'>
-							{/* table header */}
 							<div
 								className='grid grid-cols-[16px_4fr_2fr_1fr] gap-4 px-10 py-2 text-sm 
             text-zinc-400 border-b border-white/5'
@@ -104,12 +132,11 @@ const AlbumPage = () => {
 								</div>
 							</div>
 
-							{/* songs list */}
-
 							<div className='px-6'>
 								<div className='space-y-2 py-4'>
 									{currentAlbum?.songs.map((song, index) => {
 										const isCurrentSong = currentSong?._id === song._id;
+										const isLiked = likedSongs.includes(song._id);
 										return (
 											<div
 												key={song._id}
@@ -138,7 +165,25 @@ const AlbumPage = () => {
 													</div>
 												</div>
 												<div className='flex items-center'>{song.createdAt.split("T")[0]}</div>
-												<div className='flex items-center'>{formatDuration(song.duration)}</div>
+												<div className='flex items-center gap-2'>
+													{formatDuration(song.duration)}
+													<button
+														onClick={(e) => {
+															e.stopPropagation();
+															handleLikeSong(song._id, isLiked);
+														}}
+														className={`p-1 rounded-full transition-all duration-300 ${
+															isLiked ? "bg-emerald-500/20" : ""
+														}`}
+													>
+														<Heart
+															className={`h-5 w-5 transition-all duration-300 ${
+																isLiked ? "text-emerald-500" : "text-zinc-400"
+															} ${loadingLike === song._id ? "opacity-50" : ""}`}
+															fill={isLiked ? "currentColor" : "none"}
+														/>
+													</button>
+												</div>
 											</div>
 										);
 									})}
@@ -151,4 +196,5 @@ const AlbumPage = () => {
 		</div>
 	);
 };
+
 export default AlbumPage;
