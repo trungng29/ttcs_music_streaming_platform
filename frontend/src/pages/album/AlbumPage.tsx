@@ -32,8 +32,16 @@ const AlbumPage = () => {
 	}, [fetchAlbumById, albumId]);
 
 	useEffect(() => {
-		if (userId) fetchUser(userId);
-	}, [userId, fetchUser]);
+		if (userId) {
+			const fetchUserWithToken = async () => {
+				const token = await getToken();
+				if (token) {
+					await fetchUser(userId, token);
+				}
+			};
+			fetchUserWithToken();
+		}
+	}, [userId, fetchUser, getToken]);
 
 	if (isLoading) return null;
 
@@ -53,24 +61,29 @@ const AlbumPage = () => {
 	};
 
 	const handleLikeSong = async (songId: string, isLiked: boolean) => {
-		if (!userId) return;
 		try {
 			setLoadingLike(songId);
 			const token = await getToken();
-			if (!token) throw new Error("Không tìm thấy token");
+			if (!token) {
+				toast.error("Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!");
+				return;
+			}
 
 			if (isLiked) {
-				await unlikeSong(userId, token, songId);
-				await fetchUser(userId);
+				await unlikeSong(token, songId);
 				toast.success("Đã xóa khỏi bài hát yêu thích");
 			} else {
-				await likeSong(userId, token, songId);
-				await fetchUser(userId);
+				await likeSong(token, songId);
 				toast.success("Đã thêm vào bài hát yêu thích");
 			}
-		} catch (error) {
-			console.error('Error in handleLikeSong:', error);
-			toast.error("Có lỗi xảy ra");
+			const decoded: any = jwtDecode(token);
+			await fetchUser(decoded.sub, token);
+		} catch (error: any) {
+			if (error?.response?.status === 401) {
+				toast.error("Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!");
+			} else {
+				toast.error("Có lỗi xảy ra");
+			}
 		} finally {
 			setLoadingLike(null);
 		}

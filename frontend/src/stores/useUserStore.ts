@@ -9,15 +9,17 @@ interface User {
 
 interface UserStore {
   user: User | null;
-  fetchUser: (userId: string) => Promise<void>;
+  fetchUser: (userId: string, token: string) => Promise<void>;
   setUser: (user: User) => void;
 }
 
 export const useUserStore = create<UserStore>((set) => ({
   user: null,
-  fetchUser: async (userId: string) => {
+  fetchUser: async (userId: string, token: string) => {
     try {
-      const res = await axiosInstance.get(`/users/${userId}`);
+      const res = await axiosInstance.get(`/users/${userId}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
       set({ user: res.data });
     } catch (error: any) {
       console.error("Error fetching user:", error);

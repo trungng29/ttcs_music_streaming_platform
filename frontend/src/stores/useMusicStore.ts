@@ -27,8 +27,8 @@ interface MusicStore {
 	fetchSongs: () => Promise<void>;
 	deleteSong: (id: string) => Promise<void>;
 	deleteAlbum: (id: string) => Promise<void>;
-	likeSong: (userId: string, token: string, songId: string) => Promise<void>;
-	unlikeSong: (userId: string, token: string, songId: string) => Promise<void>;
+	likeSong: (token: string, songId: string) => Promise<void>;
+	unlikeSong: (token: string, songId: string) => Promise<void>;
 }
 
 export const useMusicStore = create<MusicStore>((set) => ({
@@ -180,8 +180,10 @@ export const useMusicStore = create<MusicStore>((set) => ({
 		}
 	},
 
-	likeSong: async (userId: string, token: string, songId: string) => {
+	likeSong: async (token: string, songId: string) => {
 		try {
+			const decoded: any = jwtDecode(token);
+			const userId = decoded.sub; // ClerkId
 			const response = await axiosInstance.post(
 				`/users/${userId}/like/${songId}`,
 				{},
@@ -194,8 +196,10 @@ export const useMusicStore = create<MusicStore>((set) => ({
 		}
 	},
 
-	unlikeSong: async (userId: string, token: string, songId: string) => {
+	unlikeSong: async (token: string, songId: string) => {
 		try {
+			const decoded: any = jwtDecode(token);
+			const userId = decoded.sub; // ClerkId
 			const response = await axiosInstance.post(
 				`/users/${userId}/unlike/${songId}`,
 				{},
