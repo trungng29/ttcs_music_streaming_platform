@@ -7,7 +7,7 @@ import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { useUser, useAuth } from "@clerk/clerk-react";
 import { useUserStore } from "@/stores/useUserStore";
-import { toast } from "react-hot-toast";
+import { toast, Toaster } from "sonner";
 import { jwtDecode } from "jwt-decode";
 
 export const formatDuration = (seconds: number) => {
@@ -69,12 +69,13 @@ const AlbumPage = () => {
 				return;
 			}
 
+			const song = currentAlbum?.songs.find(s => s._id === songId);
 			if (isLiked) {
 				await unlikeSong(token, songId);
-				toast.success("Đã xóa khỏi bài hát yêu thích");
+				toast.success(`Đã xóa "${song?.title}" khỏi bài hát yêu thích`);
 			} else {
 				await likeSong(token, songId);
-				toast.success("Đã thêm vào bài hát yêu thích");
+				toast.success(`Đã thêm "${song?.title}" vào bài hát yêu thích`);
 			}
 			const decoded: any = jwtDecode(token);
 			await fetchUser(decoded.sub, token);
@@ -82,7 +83,7 @@ const AlbumPage = () => {
 			if (error?.response?.status === 401) {
 				toast.error("Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!");
 			} else {
-				toast.error("Có lỗi xảy ra");
+				toast.error("Có lỗi xảy ra khi thao tác với bài hát yêu thích");
 			}
 		} finally {
 			setLoadingLike(null);
@@ -91,6 +92,7 @@ const AlbumPage = () => {
 
 	return (
 		<div className='h-full'>
+			<Toaster richColors position="top-center" />
 			<ScrollArea className='h-full rounded-md'>
 				<div className='relative min-h-full'>
 					<div

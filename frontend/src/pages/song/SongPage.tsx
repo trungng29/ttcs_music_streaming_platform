@@ -3,10 +3,12 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { useMusicStore } from "@/stores/useMusicStore";
 import { usePlayerStore } from "@/stores/usePlayerStore";
 import { Clock, Pause, Play, Heart } from "lucide-react";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
-import { useUser } from "@clerk/clerk-react";
+import { useUser, useAuth } from "@clerk/clerk-react";
 import { useUserStore } from "@/stores/useUserStore";
+import { toast, Toaster } from "sonner";
+import { jwtDecode } from "jwt-decode";
 
 export const formatDuration = (seconds: number) => {
   const minutes = Math.floor(seconds / 60);
@@ -22,15 +24,20 @@ const SongPage = () => {
   const userId = clerkUser?.id;
   const { user, fetchUser } = useUserStore();
   const likedSongs = user?.likedSongs || [];
+  const [loadingLike, setLoadingLike] = useState(false);
+  const { getToken } = useAuth();
 
   useEffect(() => {
-    console.log("songData:", songData);
-    console.log("error:", error);
-  }, [songData, error]);
-
-  useEffect(() => {
-    if (userId) fetchUser(userId);
-  }, [userId, fetchUser]);
+    if (userId) {
+      const fetchUserWithToken = async () => {
+        const token = await getToken();
+        if (token) {
+          await fetchUser(userId, token);
+        }
+      };
+      fetchUserWithToken();
+    }
+  }, [userId, fetchUser, getToken]);
 
   useEffect(() => {
     if (songId) fetchSongById(songId);
@@ -53,17 +60,38 @@ const SongPage = () => {
 
   const handleLike = async () => {
     if (!userId || !songData) return;
-    const isLiked = likedSongs.includes(songData._id);
-    if (isLiked) {
-      await unlikeSong(userId, songData._id);
-    } else {
-      await likeSong(userId, songData._id);
+    try {
+      setLoadingLike(true);
+      const token = await getToken();
+      if (!token) {
+        toast.error("Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!");
+        return;
+      }
+
+      const isLiked = likedSongs.includes(songData._id);
+      if (isLiked) {
+        await unlikeSong(token, songData._id);
+        toast.success(`Đã xóa "${songData.title}" khỏi bài hát yêu thích`);
+      } else {
+        await likeSong(token, songData._id);
+        toast.success(`Đã thêm "${songData.title}" vào bài hát yêu thích`);
+      }
+      const decoded: any = jwtDecode(token);
+      await fetchUser(decoded.sub, token);
+    } catch (error: any) {
+      if (error?.response?.status === 401) {
+        toast.error("Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!");
+      } else {
+        toast.error("Có lỗi xảy ra khi thao tác với bài hát yêu thích");
+      }
+    } finally {
+      setLoadingLike(false);
     }
-    await fetchUser(userId);
   };
 
   return (
     <div className='h-full'>
+      <Toaster richColors position="top-center" />
       <ScrollArea className='h-full rounded-md'>
         {/* Main Content */}
         <div className='relative min-h-[100vh]'>
@@ -112,9 +140,12 @@ const SongPage = () => {
                 size='icon'
                 variant='ghost'
                 className='hover:scale-105 transition-all'
+                disabled={loadingLike}
               >
                 <Heart
-                  className={`h-7 w-7 ${likedSongs.includes(songData._id) ? 'text-red-500 fill-red-500' : 'text-white'}`}
+                  className={`h-7 w-7 ${
+                    likedSongs.includes(songData._id) ? 'text-green-500 fill-green-500' : 'text-white'
+                  } ${loadingLike ? 'opacity-50' : ''}`}
                 />
               </Button>
             </div>
