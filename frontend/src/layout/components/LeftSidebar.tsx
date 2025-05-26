@@ -4,20 +4,31 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
 import { useMusicStore } from "@/stores/useMusicStore";
 import { SignedIn, useUser } from "@clerk/clerk-react";
-import { HomeIcon, Library, MessageCircle, Search, Heart } from "lucide-react";
-import { useEffect } from "react";
+import { HomeIcon, Library, MessageCircle, Search, Heart, Plus } from "lucide-react";
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { useUserStore } from "@/stores/useUserStore";
+import { usePlaylistStore } from "@/stores/usePlaylistStore";
+import PlaylistList from "@/components/playlists/PlaylistList";
+import CreatePlaylistDialog from "@/components/playlists/CreatePlaylistDialog";
 
 const LeftSidebar = () => {
   const { albums, fetchAlbums, isLoading } = useMusicStore();
   const { user: clerkUser } = useUser();
   const { user } = useUserStore();
+  const { playlists, fetchPlaylists } = usePlaylistStore();
   const likedSongs = user?.likedSongs || [];
+  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
 
   useEffect(() => {
     fetchAlbums();
   }, [fetchAlbums]);
+
+  useEffect(() => {
+    if (user?._id) {
+      fetchPlaylists(user._id);
+    }
+  }, [user?._id, fetchPlaylists]);
 
   console.log({ albums });
 
@@ -76,6 +87,13 @@ const LeftSidebar = () => {
             <Library className="size-5 mr-2" />
             <span className="hidden md:inline">Playlists</span>
           </div>
+          <button
+            className="p-1 rounded hover:bg-zinc-800 text-zinc-400 hover:text-white"
+            onClick={() => setIsCreateDialogOpen(true)}
+            title="Tạo playlist mới"
+          >
+            <Plus className="w-5 h-5" />
+          </button>
         </div>
 
         <ScrollArea className="h-[calc(100vh-300px)]">
@@ -100,6 +118,10 @@ const LeftSidebar = () => {
                       </p>
                     </div>
                   </Link>
+                </SignedIn>
+
+                <SignedIn>
+                  <PlaylistList />
                 </SignedIn>
 
                 {albums.map((album) => (
@@ -127,6 +149,10 @@ const LeftSidebar = () => {
           </div>
         </ScrollArea>
       </div>
+      <CreatePlaylistDialog
+        isOpen={isCreateDialogOpen}
+        onClose={() => setIsCreateDialogOpen(false)}
+      />
     </div>
   );
 };

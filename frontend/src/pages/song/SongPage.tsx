@@ -9,6 +9,7 @@ import { useUser, useAuth } from "@clerk/clerk-react";
 import { useUserStore } from "@/stores/useUserStore";
 import { toast, Toaster } from "sonner";
 import { jwtDecode } from "jwt-decode";
+import AddToPlaylistButton from "@/components/playlists/AddToPlaylistButton";
 
 export const formatDuration = (seconds: number) => {
   const minutes = Math.floor(seconds / 60);
@@ -122,7 +123,7 @@ const SongPage = () => {
             </div>
 
             {/* play button */}
-            <div className='px-6 pb-4 flex items-center gap-6'>
+            <div className="px-6 pb-4 flex items-center gap-6">
               <Button
                 onClick={handlePlaySong}
                 size='icon'
@@ -148,6 +149,7 @@ const SongPage = () => {
                   } ${loadingLike ? 'opacity-50' : ''}`}
                 />
               </Button>
+              {songData && <AddToPlaylistButton songId={songData._id} />}
             </div>
           </div>
         </div>

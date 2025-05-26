@@ -187,14 +187,10 @@ const AlbumPage = () => {
 															e.stopPropagation();
 															handleLikeSong(song._id, isLiked);
 														}}
-														className={`p-1 rounded-full transition-all duration-300 ${
-															isLiked ? "bg-emerald-500/20" : ""
-														}`}
+														className={`ml-4 p-1 rounded-full transition-all duration-300 ${isLiked ? "bg-emerald-500/20" : ""}`}
 													>
 														<Heart
-															className={`h-5 w-5 transition-all duration-300 ${
-																isLiked ? "text-emerald-500" : "text-zinc-400"
-															} ${loadingLike === song._id ? "opacity-50" : ""}`}
+															className={`h-5 w-5 transition-all duration-300 ${isLiked ? "text-emerald-500" : "text-zinc-400"} ${loadingLike === song._id ? "opacity-50" : ""}`}
 															fill={isLiked ? "currentColor" : "none"}
 														/>
 													</button>
