@@ -3,28 +3,42 @@ import { axiosInstance } from "@/lib/axios";
 
 interface User {
   _id: string;
+  username: string;
   likedSongs: string[];
   // Thêm các trường khác nếu cần
 }
 
 interface UserStore {
   user: User | null;
+  isLoading: boolean;
+  error: string | null;
   fetchUser: (userId: string, token: string) => Promise<void>;
-  setUser: (user: User) => void;
+  fetchLikedSongsOfUser: (userId: string) => Promise<any[]>;
 }
 
 export const useUserStore = create<UserStore>((set) => ({
   user: null,
+  isLoading: false,
+  error: null,
   fetchUser: async (userId: string, token: string) => {
+    set({ isLoading: true, error: null });
     try {
-      const res = await axiosInstance.get(`/users/${userId}`, {
+      const response = await axiosInstance.get(`/users/${userId}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
-      set({ user: res.data });
+      set({ user: response.data });
     } catch (error: any) {
-      console.error("Error fetching user:", error);
-      throw new Error(error.response?.data?.message || "Không thể lấy thông tin người dùng");
+      set({ error: error.message });
+    } finally {
+      set({ isLoading: false });
     }
   },
-  setUser: (user: User) => set({ user }),
+  fetchLikedSongsOfUser: async (userId: string) => {
+    try {
+      const response = await axiosInstance.get(`/songs/${userId}/liked-songs`);
+      return response.data;
+    } catch (error) {
+      return [];
+    }
+  }
 })); 

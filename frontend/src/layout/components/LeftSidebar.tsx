@@ -3,13 +3,17 @@ import { buttonVariants } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
 import { useMusicStore } from "@/stores/useMusicStore";
-import { SignedIn } from "@clerk/clerk-react";
-import { HomeIcon, Library, MessageCircle, Search } from "lucide-react";
+import { SignedIn, useUser } from "@clerk/clerk-react";
+import { HomeIcon, Library, MessageCircle, Search, Heart } from "lucide-react";
 import { useEffect } from "react";
 import { Link } from "react-router-dom";
+import { useUserStore } from "@/stores/useUserStore";
 
 const LeftSidebar = () => {
   const { albums, fetchAlbums, isLoading } = useMusicStore();
+  const { user: clerkUser } = useUser();
+  const { user } = useUserStore();
+  const likedSongs = user?.likedSongs || [];
 
   useEffect(() => {
     fetchAlbums();
@@ -79,26 +83,46 @@ const LeftSidebar = () => {
             {isLoading ? (
               <PlaylistSkeleton />
             ) : (
-              albums.map((album) => (
-                <Link
-                  to={`/albums/${album._id}`}
-                  key={album._id}
-                  className="p-2 hover:bg-zinc-800 rounded-md flex items-center gap-3 group cursor-pointer"
-                >
-                  <img
-                    src={album.imageUrl}
-                    alt="Playlist img"
-                    className="size-12 rounded-md flex-shrink-0 object-cover"
-                  />
+              <>
+                <SignedIn>
+                  <Link
+                    to={"/liked-songs"}
+                    className="p-2 hover:bg-zinc-800 rounded-md flex items-center gap-3 group cursor-pointer"
+                  >
+                    <div className="size-12 rounded-md flex-shrink-0 bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center">
+                      <Heart className="size-6 text-white" fill="white" />
+                    </div>
 
-                  <div className="flex-1 min-w-0 hidden md:block">
-                    <p className="font-medium truncate">{album.title}</p>
-                    <p className="text-sm text-zinc-400 truncate">
-                      Album • {album.artist}
-                    </p>
-                  </div>
-                </Link>
-              ))
+                    <div className="flex-1 min-w-0 hidden md:block">
+                      <p className="font-medium truncate">Bài hát yêu thích</p>
+                      <p className="text-sm text-zinc-400 truncate">
+                        Playlist • {likedSongs.length} bài hát
+                      </p>
+                    </div>
+                  </Link>
+                </SignedIn>
+
+                {albums.map((album) => (
+                  <Link
+                    to={`/albums/${album._id}`}
+                    key={album._id}
+                    className="p-2 hover:bg-zinc-800 rounded-md flex items-center gap-3 group cursor-pointer"
+                  >
+                    <img
+                      src={album.imageUrl}
+                      alt="Playlist img"
+                      className="size-12 rounded-md flex-shrink-0 object-cover"
+                    />
+
+                    <div className="flex-1 min-w-0 hidden md:block">
+                      <p className="font-medium truncate">{album.title}</p>
+                      <p className="text-sm text-zinc-400 truncate">
+                        Album • {album.artist}
+                      </p>
+                    </div>
+                  </Link>
+                ))}
+              </>
             )}
           </div>
         </ScrollArea>

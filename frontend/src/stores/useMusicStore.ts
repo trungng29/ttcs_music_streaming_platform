@@ -25,6 +25,7 @@ interface MusicStore {
 	fetchTrendingSongs: () => Promise<void>;
 	fetchStats: () => Promise<void>;
 	fetchSongs: () => Promise<void>;
+	fetchSongsByIds: (ids: string[]) => Promise<void>;
 	deleteSong: (id: string) => Promise<void>;
 	deleteAlbum: (id: string) => Promise<void>;
 	likeSong: (token: string, songId: string) => Promise<void>;
@@ -175,6 +176,18 @@ export const useMusicStore = create<MusicStore>((set) => ({
 			set({ trendingSongs: response.data });
 		} catch (error: any) {
 			set({ error: error.response.data.message });
+		} finally {
+			set({ isLoading: false });
+		}
+	},
+
+	fetchSongsByIds: async (ids: string[]) => {
+		set({ isLoading: true, error: null });
+		try {
+			const response = await axiosInstance.post("/songs/by-ids", { ids });
+			set({ songs: response.data });
+		} catch (error: any) {
+			set({ error: error.message });
 		} finally {
 			set({ isLoading: false });
 		}

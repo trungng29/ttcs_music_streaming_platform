@@ -1,5 +1,6 @@
 import { User } from "../models/user.model.js";
 import { Message } from "../models/message.model.js";
+import { Song } from "../models/song.model.js";
 
 export const getAllUsers = async (req, res, next) => {
 	try {
@@ -77,3 +78,18 @@ export const getUserByClerkId = async (req, res, next) => {
 	  next(error);
 	}
   };
+
+export const getLikedSongsOfUser = async (req, res) => {
+	try {
+		const { userId } = req.params;
+		// Lấy user
+		const user = await User.findById(userId);
+		if (!user) return res.status(404).json({ message: "User not found" });
+
+		// Lấy danh sách bài hát yêu thích
+		const songs = await Song.find({ _id: { $in: user.likedSongs } });
+		res.json(songs);
+	} catch (error) {
+		res.status(500).json({ message: "Server error", error: error.message });
+	}
+};
