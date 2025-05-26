@@ -8,7 +8,6 @@ import { useUser, useAuth } from "@clerk/clerk-react";
 import { useUserStore } from "@/stores/useUserStore";
 import { toast, Toaster } from "sonner";
 import { jwtDecode } from "jwt-decode";
-import axios from "axios";
 
 export const formatDuration = (seconds: number) => {
   const minutes = Math.floor(seconds / 60);
