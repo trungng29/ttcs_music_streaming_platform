@@ -10,6 +10,7 @@ import { useUserStore } from "@/stores/useUserStore";
 import { toast, Toaster } from "sonner";
 import { jwtDecode } from "jwt-decode";
 import AddToPlaylistButton from "@/components/playlists/AddToPlaylistButton";
+import CommentSection from "@/components/comments/CommentSection";
 
 export const formatDuration = (seconds: number) => {
   const minutes = Math.floor(seconds / 60);
@@ -151,6 +152,9 @@ const SongPage = () => {
               </Button>
               {songData && <AddToPlaylistButton songId={songData._id} />}
             </div>
+
+            {/* Comments Section */}
+            {songData && <CommentSection songId={songData._id} />}
           </div>
         </div>
       </ScrollArea>
