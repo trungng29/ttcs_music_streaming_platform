@@ -10,6 +10,7 @@ import SearchPage from "./pages/Search/SearchPage";
 import AdminPage from "./pages/admin/AdminPage";
 import LikedSongsPage from "./pages/liked-songs/LikedSongsPage";
 import PlaylistPage from "./pages/playlist/PlaylistPage";
+import ArtistPage from "./pages/artist/ArtistPage";
 import { Toaster } from "react-hot-toast"
 
 function App() {
@@ -34,6 +35,7 @@ function App() {
           <Route path='/songs/:songId' element={<SongPage />} />
           <Route path='/liked-songs' element={<LikedSongsPage />} />
           <Route path='/playlists/:playlistId' element={<PlaylistPage />} />
+          <Route path='/artists/:artistId' element={<ArtistPage />} />
         </Route>
       </Routes>
       <Toaster />

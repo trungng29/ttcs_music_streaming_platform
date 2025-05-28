@@ -22,10 +22,18 @@ const songSchema = new mongoose.Schema(
 			type: Number,
 			required: true,
 		},
+		plays: {
+			type: Number,
+			default: 0,
+		},
+		artistId: {
+			type: mongoose.Schema.Types.ObjectId,
+			ref: "Artist",
+			required: true,
+		},
 		albumId: {
 			type: mongoose.Schema.Types.ObjectId,
 			ref: "Album",
-			required: false,
 		},
 	},
 	{ timestamps: true }

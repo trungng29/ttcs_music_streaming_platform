@@ -15,7 +15,19 @@ const userSchema = new mongoose.Schema(
 			required: true,
 			unique: true,
 		},
-		likedSongs: [{ type: mongoose.Schema.Types.ObjectId, ref: "Song" }]
+		likedSongs: [{ type: mongoose.Schema.Types.ObjectId, ref: "Song" }],
+		role: {
+			type: String,
+			enum: ["user", "artist", "admin"],
+			default: "user"
+		},
+		// Thông tin thêm cho artist
+		artistInfo: {
+			bio: { type: String, default: "" },
+			genres: [{ type: String }],
+			monthlyListeners: { type: Number, default: 0 },
+			verified: { type: Boolean, default: false }
+		}
 	},
 	{ timestamps: true } //  createdAt, updatedAt
 );

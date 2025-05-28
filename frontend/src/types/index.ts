@@ -36,11 +36,20 @@ export interface Message {
 	updatedAt: string;
 }
 
+export interface ArtistInfo {
+	verified: boolean;
+	monthlyListeners: number;
+	genres: string[];
+	bio?: string;
+}
+
 export interface User {
 	_id: string;
 	clerkId: string;
 	fullName: string;
 	imageUrl: string;
+	artistInfo?: ArtistInfo;
+	likedSongs?: string[];
 }
 
 

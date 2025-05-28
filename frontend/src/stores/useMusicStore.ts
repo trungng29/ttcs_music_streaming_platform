@@ -16,6 +16,8 @@ interface MusicStore {
 	madeForYouSongs: Song[];
 	trendingSongs: Song[];
 	stats: Stats;
+	artistSongs: Song[];
+	artistAlbums: Album[];
 
 	fetchAlbums: () => Promise<void>;
 	fetchAlbumById: (id: string) => Promise<void>;
@@ -26,10 +28,13 @@ interface MusicStore {
 	fetchStats: () => Promise<void>;
 	fetchSongs: () => Promise<void>;
 	fetchSongsByIds: (ids: string[]) => Promise<void>;
+	fetchArtistSongs: (artistId: string) => Promise<void>;
+	fetchArtistAlbums: (artistId: string) => Promise<void>;
 	deleteSong: (id: string) => Promise<void>;
 	deleteAlbum: (id: string) => Promise<void>;
 	likeSong: (token: string, songId: string) => Promise<void>;
 	unlikeSong: (token: string, songId: string) => Promise<void>;
+	setCurrentSong: (song: Song) => void;
 }
 
 export const useMusicStore = create<MusicStore>((set) => ({
@@ -42,11 +47,17 @@ export const useMusicStore = create<MusicStore>((set) => ({
 	madeForYouSongs: [],
 	featuredSongs: [],
 	trendingSongs: [],
+	artistSongs: [],
+	artistAlbums: [],
 	stats: {
 		totalSongs: 0,
 		totalAlbums: 0,
 		totalUsers: 0,
 		totalArtists: 0,
+	},
+
+	setCurrentSong: (song: Song) => {
+		set({ currentSong: song });
 	},
 
 	deleteSong: async (id) => {
@@ -186,6 +197,30 @@ export const useMusicStore = create<MusicStore>((set) => ({
 		try {
 			const response = await axiosInstance.post("/songs/by-ids", { ids });
 			set({ songs: response.data });
+		} catch (error: any) {
+			set({ error: error.message });
+		} finally {
+			set({ isLoading: false });
+		}
+	},
+
+	fetchArtistSongs: async (artistId: string) => {
+		set({ isLoading: true, error: null });
+		try {
+			const response = await axiosInstance.get(`/artists/${artistId}/songs`);
+			set({ artistSongs: response.data });
+		} catch (error: any) {
+			set({ error: error.message });
+		} finally {
+			set({ isLoading: false });
+		}
+	},
+
+	fetchArtistAlbums: async (artistId: string) => {
+		set({ isLoading: true, error: null });
+		try {
+			const response = await axiosInstance.get(`/artists/${artistId}/albums`);
+			set({ artistAlbums: response.data });
 		} catch (error: any) {
 			set({ error: error.message });
 		} finally {

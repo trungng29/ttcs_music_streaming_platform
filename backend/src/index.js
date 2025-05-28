@@ -15,6 +15,8 @@ import albumRoutes from "./routes/album.route.js";
 import statRoutes from "./routes/stat.route.js";
 import playlistRoutes from "./routes/playlist.route.js";
 import commentRoutes from "./routes/comment.route.js";
+import artistRoutes from "./routes/artist.route.js";
+
 dotenv.config();
 
 const __dirname = path.resolve();
@@ -49,6 +51,7 @@ app.use("/api/albums", albumRoutes);
 app.use("/api/stats", statRoutes);
 app.use("/api/playlists", playlistRoutes);
 app.use("/api/comments", commentRoutes);
+app.use("/api/artists", artistRoutes);
 
 // error handling middleware
 app.use((err, req, res, next) => {
