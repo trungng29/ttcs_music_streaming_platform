@@ -27,6 +27,7 @@ const AlbumItem = ({ album }: AlbumItemProps) => {
         w-full 
         p-2 
         rounded-md
+        min-w-[180px] max-w-full
       "
     >
       <div className="relative min-h-[48px] min-w-[48px] overflow-hidden rounded-md">
@@ -53,9 +54,9 @@ const AlbumItem = ({ album }: AlbumItemProps) => {
         </div>
       </div>
       <div className="flex flex-col gap-y-1 overflow-hidden">
-        <p className="text-white truncate">{album.title}</p>
-        <p className="text-neutral-400 text-sm truncate">
-          {album.artist}
+        <p className="text-white">{album.title}</p>
+        <p className="text-neutral-400 text-sm">
+          {typeof album.artist === 'object' && album.artist !== null ? (album.artist as any).fullName : album.artist}
         </p>
       </div>
     </div>
