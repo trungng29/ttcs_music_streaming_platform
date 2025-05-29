@@ -5,6 +5,7 @@ import App from "./App.tsx";
 import { ClerkProvider } from "@clerk/clerk-react";
 import { BrowserRouter } from "react-router-dom";
 import AuthProvider from "./providers/AuthProvider.tsx";
+import { Buffer } from "buffer";
 
 // Import your Publishable Key
 const PUBLISHABLE_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
@@ -12,6 +13,9 @@ const PUBLISHABLE_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
 if (!PUBLISHABLE_KEY) {
   throw new Error("Missing Publishable Key");
 }
+
+// @ts-ignore
+window.Buffer = window.Buffer || Buffer;
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>

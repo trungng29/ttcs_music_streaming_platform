@@ -9,6 +9,7 @@ import { toast, Toaster } from "sonner";
 import { Laptop2, ListMusic, Mic2, Pause, Play, Repeat, Shuffle, SkipBack, SkipForward, Volume1, Heart } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { jwtDecode } from "jwt-decode";
+import { Link } from "react-router-dom";
 
 const formatTime = (seconds: number) => {
 	const minutes = Math.floor(seconds / 60);
@@ -105,6 +106,8 @@ export const PlaybackControls = () => {
 		}
 	};
 
+	console.log("currentSong:", currentSong); // Thêm dòng này
+
 	return (
 		<>
 			<Toaster richColors position="top-center" />
@@ -122,10 +125,18 @@ export const PlaybackControls = () => {
 								<div className='flex items-center gap-6'>
 									<div className='flex-1 min-w-0'>
 										<div className='font-medium truncate hover:underline cursor-pointer'>
-											{currentSong.title}
+											<Link
+												to={`/songs/${currentSong._id}`}
+											>
+												{currentSong.title}
+											</Link>
 										</div>
 										<div className='text-sm text-zinc-400 truncate hover:underline cursor-pointer'>
-											{currentSong.artist}
+										<Link to={`/artists/${currentSong.artistId}`}>
+											{typeof currentSong.artist === "object"
+												? currentSong.artist.fullName || "Unknown"
+												: currentSong.artist || "Unknown"}
+										</Link>
 										</div>
 									</div>
 									<Button

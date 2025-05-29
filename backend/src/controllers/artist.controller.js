@@ -33,7 +33,7 @@ export const getArtistSongs = async (req, res, next) => {
 export const getArtistAlbums = async (req, res, next) => {
   try {
     const { artistId } = req.params;
-    const albums = await Album.find({ artist: artistId }).sort({ createdAt: -1 }).populate("artist");
+    const albums = await Album.find({ artistId }).sort({ createdAt: -1 });
     res.json(albums);
   } catch (error) {
     next(error);

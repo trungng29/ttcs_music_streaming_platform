@@ -5,9 +5,9 @@ import { protectRoute, requireAdmin } from "../middleware/auth.middleware.js";
 const router = Router();
 
 // Middleware to protect routes and require admin access
-router.use(protectRoute, requireAdmin);
+router.use(protectRoute );
 
-router.get("/check", checkAdmin);
+router.get("/check", requireAdmin, checkAdmin);
 
 router.post("/songs", createSong);
 router.delete("/songs/:id", deleteSong);

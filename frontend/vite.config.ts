@@ -10,9 +10,13 @@ export default defineConfig({
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
+      buffer: "buffer",
     },
   },
   server: {
     port: 3000
+  },
+  optimizeDeps: {
+    include: ["music-metadata-browser", "buffer"]
   }
 })

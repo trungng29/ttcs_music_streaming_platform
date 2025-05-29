@@ -15,6 +15,7 @@ import { useMusicStore } from "@/stores/useMusicStore";
 import { Plus, Upload } from "lucide-react";
 import { useRef, useState } from "react";
 import toast from "react-hot-toast";
+import { parseBlob } from "music-metadata-browser";
 
 interface NewSong {
 	title: string;
@@ -54,7 +55,6 @@ const AddSongDialog = () => {
 			const formData = new FormData();
 
 			formData.append("title", newSong.title);
-			formData.append("artist", newSong.artist);
 			formData.append("duration", newSong.duration);
 			if (newSong.album && newSong.album !== "none") {
 				formData.append("albumId", newSong.album);
@@ -88,6 +88,26 @@ const AddSongDialog = () => {
 		}
 	};
 
+	const handleAudioChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+		const file = e.target.files?.[0];
+		if (file) {
+			setFiles((prev) => ({ ...prev, audio: file }));
+			try {
+				const metadata = await parseBlob(file);
+				const duration = metadata.format.duration;
+				setNewSong((prev) => ({
+					...prev,
+					duration: duration ? Math.round(duration).toString() : "0",
+				}));
+				toast.success("Đã lấy thời lượng bài hát!");
+			} catch (err) {
+				console.error("Lỗi đọc metadata:", err);
+				setNewSong((prev) => ({ ...prev, duration: "0" }));
+				toast.error("Không đọc được thời lượng file nhạc!");
+			}
+		}
+	};
+
 	return (
 		<Dialog open={songDialogOpen} onOpenChange={setSongDialogOpen}>
 			<DialogTrigger asChild>
@@ -109,7 +129,7 @@ const AddSongDialog = () => {
 						accept='audio/*'
 						ref={audioInputRef}
 						hidden
-						onChange={(e) => setFiles((prev) => ({ ...prev, audio: e.target.files![0] }))}
+						onChange={handleAudioChange}
 					/>
 
 					<input
@@ -165,22 +185,14 @@ const AddSongDialog = () => {
 						/>
 					</div>
 
-					<div className='space-y-2'>
-						<label className='text-sm font-medium'>Artist</label>
-						<Input
-							value={newSong.artist}
-							onChange={(e) => setNewSong({ ...newSong, artist: e.target.value })}
-							className='bg-zinc-800 border-zinc-700'
-						/>
-					</div>
-
+					{/* Duration chỉ đọc, không cho chỉnh tay */}
 					<div className='space-y-2'>
 						<label className='text-sm font-medium'>Duration (seconds)</label>
 						<Input
 							type='number'
 							min='0'
 							value={newSong.duration}
-							onChange={(e) => setNewSong({ ...newSong, duration: e.target.value || "0" })}
+							readOnly
 							className='bg-zinc-800 border-zinc-700'
 						/>
 					</div>

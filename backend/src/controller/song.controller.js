@@ -1,11 +1,16 @@
 import { Song } from "../models/song.model.js";
+import { User } from "../models/user.model.js";
 
 export const getAllSongs = async (req, res, next) => {
 	try {
 		// -1 = Descending => newest -> oldest
 		// 1 = Ascending => oldest -> newest
 		const songs = await Song.find().sort({ createdAt: -1 });
-		res.json(songs);
+		const songsWithArtistUserId = songs.map(song => ({
+			...song.toObject(),
+			artistUserId: song.artistId,
+		}));
+		res.json(songsWithArtistUserId);
 	} catch (error) {
 		next(error);
 	}
@@ -20,7 +25,19 @@ export const getSongById = async (req, res, next) => {
 			return res.status(404).json({ message: "Không tìm thấy bài hát" });
 		}
 
-		res.json(song);
+		// Lấy user theo clerkId (artistId trong song)
+		let artistUserId = undefined;
+		if (song.artistId) {
+			const user = await User.findOne({ clerkId: song.artistId });
+			if (user) {
+				artistUserId = user._id;
+			}
+		}
+
+		res.json({
+			...song.toObject(),
+			artistUserId,
+		});
 	} catch (error) {
 		next(error);
 	}
@@ -38,13 +55,17 @@ export const getFeaturedSongs = async (req, res, next) => {
 					_id: 1,
 					title: 1,
 					artist: 1,
+					artistId: 1,
 					imageUrl: 1,
 					audioUrl: 1,
 				},
 			},
 		]);
-
-		res.json(songs);
+		const songsWithArtistUserId = songs.map(song => ({
+			...song,
+			artistUserId: song.artistId,
+		}));
+		res.json(songsWithArtistUserId);
 	} catch (error) {
 		next(error);
 	}
@@ -61,13 +82,17 @@ export const getMadeForYouSongs = async (req, res, next) => {
 					_id: 1,
 					title: 1,
 					artist: 1,
+					artistId: 1,
 					imageUrl: 1,
 					audioUrl: 1,
 				},
 			},
 		]);
-
-		res.json(songs);
+		const songsWithArtistUserId = songs.map(song => ({
+			...song,
+			artistUserId: song.artistId,
+		}));
+		res.json(songsWithArtistUserId);
 	} catch (error) {
 		next(error);
 	}
@@ -84,13 +109,17 @@ export const getTrendingSongs = async (req, res, next) => {
 					_id: 1,
 					title: 1,
 					artist: 1,
+					artistId: 1,
 					imageUrl: 1,
 					audioUrl: 1,
 				},
 			},
 		]);
-
-		res.json(songs);
+		const songsWithArtistUserId = songs.map(song => ({
+			...song,
+			artistUserId: song.artistId,
+		}));
+		res.json(songsWithArtistUserId);
 	} catch (error) {
 		next(error);
 	}
@@ -109,7 +138,11 @@ export const getSongsByTitle = async (req, res, next) => {
 			title: { $regex: title, $options: 'i' }
 		}).sort({ createdAt: -1 });
 
-		res.json(songs);
+		const songsWithArtistUserId = songs.map(song => ({
+			...song.toObject(),
+			artistUserId: song.artistId,
+		}));
+		res.json(songsWithArtistUserId);
 	} catch (error) {
 		next(error);
 	}
