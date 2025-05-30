@@ -12,6 +12,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { axiosInstance } from "@/lib/axios";
 import { useMusicStore } from "@/stores/useMusicStore";
+import { useAuthStore } from "@/stores/useAuthStore";
 import { Plus, Upload } from "lucide-react";
 import { useRef, useState } from "react";
 import toast from "react-hot-toast";
@@ -26,6 +27,7 @@ interface NewSong {
 
 const AddSongDialog = () => {
 	const { albums } = useMusicStore();
+	const { userId } = useAuthStore();
 	const [songDialogOpen, setSongDialogOpen] = useState(false);
 	const [isLoading, setIsLoading] = useState(false);
 
@@ -56,6 +58,7 @@ const AddSongDialog = () => {
 
 			formData.append("title", newSong.title);
 			formData.append("duration", newSong.duration);
+			formData.append("artistId", userId);
 			if (newSong.album && newSong.album !== "none") {
 				formData.append("albumId", newSong.album);
 			}

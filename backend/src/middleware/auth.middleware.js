@@ -1,4 +1,5 @@
 import { clerkClient } from "@clerk/express";
+import { User } from "../models/user.model.js";
 
 export const protectRoute = async (req, res, next) => {
 	if (!req.auth.userId) {
@@ -20,12 +21,19 @@ export const protectRoute = async (req, res, next) => {
 
 export const requireAdmin = async (req, res, next) => {
 	try {
-		const currentUser = await clerkClient.users.getUser(req.auth.userId);
-		const isAdmin = process.env.ADMIN_EMAIL === currentUser.primaryEmailAddress?.emailAddress;
-
-		if (!isAdmin) {
-			return res.status(403).json({ message: "Unauthorized - you must be an admin" });
+		// Tìm user trong database theo clerkId
+		const user = await User.findOne({ clerkId: req.auth.userId });
+		
+		if (!user || (user.role !== "admin" && user.role !== "artist")) {
+			return res.status(403).json({ message: "Unauthorized - you must be an admin or artist" });
 		}
+
+		// Lưu thông tin user vào request để sử dụng ở các controller
+		req.user = {
+			...req.user,
+			role: user.role,
+			userId: user._id
+		};
 
 		next();
 	} catch (error) {

@@ -20,9 +20,8 @@ const uploadToCloudinary = async (file) => {
 
 export const createSong = async (req, res, next) => {
     try {
-        console.log("req.user:", req.user);
-        if ( !req.files || !req.files.audioFile || !req.files.imageFile ) {
-            return res.status(400).json({ message: "Please upload all files !" });
+        if (!req.files || !req.files.audioFile || !req.files.imageFile) {
+            return res.status(400).json({ message: "Please upload all files!" });
         }
 
         const { title, albumId, duration } = req.body;
@@ -41,18 +40,18 @@ export const createSong = async (req, res, next) => {
         const song = new Song({
             title,
             artist: user.fullName,
-            artistId: user._id, // Lưu _id của user
+            artistId: user._id,
             audioUrl,
             imageUrl,
-            duration, 
+            duration,
             albumId: albumId || null,
         });
 
         await song.save();
 
         // if song belongs to an album, update the album's songs array
-        if ( albumId ) {
-            await Album.findByIdAndUpdate(albumId, { $push: { songs: song._id } }); 
+        if (albumId) {
+            await Album.findByIdAndUpdate(albumId, { $push: { songs: song._id } });
         }
 
         res.status(201).json({ message: "Song created successfully", song });
@@ -64,21 +63,20 @@ export const createSong = async (req, res, next) => {
 
 export const deleteSong = async (req, res, next) => {
     try {
-        const { id } = req.params;
+        const { songId } = req.params;
+        const song = await Song.findById(songId);
 
-        const song = await Song.findById(id);
-        
-        // Kiểm tra xem người dùng có phải là nghệ sĩ của bài hát không
-        if (song.artistId.toString() !== req.user.id.toString()) {
+        // Kiểm tra quyền xóa
+        if (req.user.role !== "admin" && song.artistId.toString() !== req.user.userId.toString()) {
             return res.status(403).json({ message: "Unauthorized to delete this song" });
         }
 
         // if song belongs to an album, update the album's songs array
-        if ( song.albumId ) {
+        if (song.albumId) {
             await Album.findByIdAndUpdate(song.albumId, { $pull: { songs: song._id } });
         }
 
-        await Song.findByIdAndDelete(id);
+        await Song.findByIdAndDelete(songId);
 
         res.status(200).json({ message: "Song deleted successfully" });
     } catch (error) {
@@ -88,58 +86,61 @@ export const deleteSong = async (req, res, next) => {
 };
 
 export const createAlbum = async (req, res, next) => {
-	try {
-		const { title, releaseYear } = req.body;
-		const { imageFile } = req.files;
+    try {
+        const { title, releaseYear } = req.body;
+        const { imageFile } = req.files;
 
-		const imageUrl = await uploadToCloudinary(imageFile);
+        const imageUrl = await uploadToCloudinary(imageFile);
 
-		// Lấy user từ bảng User theo clerkId
-		const user = await User.findOne({ clerkId: req.user.id });
-		if (!user) {
-			return res.status(400).json({ message: "User not found" });
-		}
+        // Lấy user từ bảng User theo clerkId
+        const user = await User.findOne({ clerkId: req.user.id });
+        if (!user) {
+            return res.status(400).json({ message: "User not found" });
+        }
 
-		const album = new Album({
-			title,
-			artist: user.fullName,
-			artistId: user._id, // Lưu _id của user
-			imageUrl,
-			releaseYear,
-		});
+        const album = new Album({
+            title,
+            artist: user.fullName,
+            artistId: user._id,
+            imageUrl,
+            releaseYear,
+        });
 
-		await album.save();
+        await album.save();
 
-		res.status(201).json(album);
-	} catch (error) {
-		console.log("Error in createAlbum", error);
-		next(error);
-	}
+        res.status(201).json(album);
+    } catch (error) {
+        console.log("Error in createAlbum", error);
+        next(error);
+    }
 };
 
 export const deleteAlbum = async (req, res, next) => {
-	try {
-		const { id } = req.params;
-		
-		const album = await Album.findById(id);
-		
-		// Kiểm tra xem người dùng có phải là nghệ sĩ của album không
-		if (album.artistId.toString() !== req.user.id.toString()) {
-			return res.status(403).json({ message: "Unauthorized to delete this album" });
-		}
+    try {
+        const { albumId } = req.params;
+        const album = await Album.findById(albumId);
 
-		await Song.deleteMany({ albumId: id });
-		await Album.findByIdAndDelete(id);
-		res.status(200).json({ message: "Album deleted successfully" });
-	} catch (error) {
-		console.log("Error in deleteAlbum", error);
-		next(error);
-	}
+        // Kiểm tra quyền xóa
+        if (req.user.role !== "admin" && album.artistId.toString() !== req.user.userId.toString()) {
+            return res.status(403).json({ message: "Unauthorized to delete this album" });
+        }
+
+        await Song.deleteMany({ albumId });
+        await Album.findByIdAndDelete(albumId);
+        res.status(200).json({ message: "Album deleted successfully" });
+    } catch (error) {
+        console.log("Error in deleteAlbum", error);
+        next(error);
+    }
 };
 
-// Lấy danh sách người dùng
+// Lấy danh sách người dùng (chỉ admin)
 export const getAllUsers = async (req, res, next) => {
     try {
+        if (req.user.role !== "admin") {
+            return res.status(403).json({ message: "Unauthorized - only admin can view all users" });
+        }
+
         const users = await User.find().sort({ createdAt: -1 });
         res.status(200).json(users);
     } catch (error) {
@@ -147,9 +148,13 @@ export const getAllUsers = async (req, res, next) => {
     }
 };
 
-// Cập nhật vai trò người dùng
+// Cập nhật vai trò người dùng (chỉ admin)
 export const updateUserRole = async (req, res, next) => {
     try {
+        if (req.user.role !== "admin") {
+            return res.status(403).json({ message: "Unauthorized - only admin can update user roles" });
+        }
+
         const { userId } = req.params;
         const { role } = req.body;
 
@@ -171,8 +176,12 @@ export const updateUserRole = async (req, res, next) => {
     }
 };
 
-// Xóa người dùng và nội dung liên quan
+// Xóa người dùng (chỉ admin)
 export const deleteUser = async (req, res, next) => {
+    if (req.user.role !== "admin") {
+        return res.status(403).json({ message: "Unauthorized - only admin can delete users" });
+    }
+
     const session = await mongoose.startSession();
     session.startTransaction();
 
@@ -205,5 +214,15 @@ export const deleteUser = async (req, res, next) => {
 };
 
 export const checkAdmin = async (req, res, next) => {
-	res.status(200).json({ admin: true });
+    try {
+        const user = await User.findOne({ clerkId: req.auth.userId });
+        res.status(200).json({
+            admin: user?.role === "admin",
+            artist: user?.role === "artist",
+            role: user?.role || "user",
+            userId: user?._id || ""
+        });
+    } catch (error) {
+        next(error);
+    }
 };

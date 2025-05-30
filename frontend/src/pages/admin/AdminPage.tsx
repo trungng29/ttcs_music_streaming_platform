@@ -8,19 +8,26 @@ import AlbumsTabContent from "./components/AlbumsTabContent";
 import UsersTabContent from "./components/UsersTabContent";
 import { useEffect } from "react";
 import { useMusicStore } from "@/stores/useMusicStore";
+import AddSongDialog from "./components/AddSongDialog";
+import AddAlbumDialog from "./components/AddAlbumDialog";
 
 const AdminPage = () => {
-	const { isAdmin, isLoading } = useAuthStore();
-
+	const { isAdmin, isArtist, isLoading, checkAdminStatus } = useAuthStore();
 	const { fetchAlbums, fetchSongs, fetchStats } = useMusicStore();
+
+	useEffect(() => {
+		checkAdminStatus();
+	}, [checkAdminStatus]);
 
 	useEffect(() => {
 		fetchAlbums();
 		fetchSongs();
-		fetchStats();
-	}, [fetchAlbums, fetchSongs, fetchStats]);
+		if (isAdmin) {
+			fetchStats();
+		}
+	}, [fetchAlbums, fetchSongs, fetchStats, isAdmin]);
 
-	if (!isAdmin && !isLoading) return <div>Unauthorized</div>;
+	if ((!isAdmin && !isArtist) && !isLoading) return <div>Unauthorized</div>;
 
 	return (
 		<div
@@ -29,7 +36,7 @@ const AdminPage = () => {
 		>
 			<Header />
 
-			<DashboardStats />
+			{isAdmin && <DashboardStats />}
 
 			<Tabs defaultValue='songs' className='space-y-6'>
 				<TabsList className='p-1 bg-zinc-800/50'>
@@ -41,21 +48,31 @@ const AdminPage = () => {
 						<Album className='mr-2 size-4' />
 						Albums
 					</TabsTrigger>
-					<TabsTrigger value='users' className='data-[state=active]:bg-zinc-700'>
-						<Users className='mr-2 size-4' />
-						Users
-					</TabsTrigger>
+					{isAdmin && (
+						<TabsTrigger value='users' className='data-[state=active]:bg-zinc-700'>
+							<Users className='mr-2 size-4' />
+							Users
+						</TabsTrigger>
+					)}
 				</TabsList>
 
 				<TabsContent value='songs'>
+					<div className="flex justify-end mb-4">
+						<AddSongDialog />
+					</div>
 					<SongsTabContent />
 				</TabsContent>
 				<TabsContent value='albums'>
+					<div className="flex justify-end mb-4">
+						<AddAlbumDialog />
+					</div>
 					<AlbumsTabContent />
 				</TabsContent>
-				<TabsContent value='users'>
-					<UsersTabContent />
-				</TabsContent>
+				{isAdmin && (
+					<TabsContent value='users'>
+						<UsersTabContent />
+					</TabsContent>
+				)}
 			</Tabs>
 		</div>
 	);

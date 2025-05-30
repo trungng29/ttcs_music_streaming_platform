@@ -3,6 +3,9 @@ import { create } from "zustand";
 
 interface AuthStore {
   isAdmin: boolean;
+  isArtist: boolean;
+  role: string;
+  userId: string;
   isLoading: boolean;
   error: string | null;
 
@@ -12,6 +15,9 @@ interface AuthStore {
 
 export const useAuthStore = create<AuthStore>((set) => ({
   isAdmin: false,
+  isArtist: false,
+  role: "user",
+  userId: "",
   isLoading: false,
   error: null,
 
@@ -19,15 +25,33 @@ export const useAuthStore = create<AuthStore>((set) => ({
     set({ isLoading: true, error: null });
     try {
       const response = await axiosInstance.get("/admin/check");
-      set({ isAdmin: response.data.admin });
+      set({
+        isAdmin: response.data.admin,
+        isArtist: response.data.artist,
+        role: response.data.role,
+        userId: response.data.userId
+      });
     } catch (error: any) {
-      set({ isAdmin: false, error: error.response.data.message });
+      set({ 
+        isAdmin: false, 
+        isArtist: false,
+        role: "user",
+        userId: "",
+        error: error.response.data.message 
+      });
     } finally {
       set({ isLoading: false });
     }
   },
 
   reset: () => {
-    set({ isAdmin: false, isLoading: false, error: null });
+    set({ 
+      isAdmin: false, 
+      isArtist: false,
+      role: "user",
+      userId: "",
+      isLoading: false, 
+      error: null 
+    });
   },
 }));
