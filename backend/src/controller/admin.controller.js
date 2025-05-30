@@ -137,6 +137,73 @@ export const deleteAlbum = async (req, res, next) => {
 	}
 };
 
+// Lấy danh sách người dùng
+export const getAllUsers = async (req, res, next) => {
+    try {
+        const users = await User.find().sort({ createdAt: -1 });
+        res.status(200).json(users);
+    } catch (error) {
+        next(error);
+    }
+};
+
+// Cập nhật vai trò người dùng
+export const updateUserRole = async (req, res, next) => {
+    try {
+        const { userId } = req.params;
+        const { role } = req.body;
+
+        if (!["user", "artist", "admin"].includes(role)) {
+            return res.status(400).json({ message: "Invalid role" });
+        }
+
+        const user = await User.findById(userId);
+        if (!user) {
+            return res.status(404).json({ message: "User not found" });
+        }
+
+        user.role = role;
+        await user.save();
+
+        res.status(200).json(user);
+    } catch (error) {
+        next(error);
+    }
+};
+
+// Xóa người dùng và nội dung liên quan
+export const deleteUser = async (req, res, next) => {
+    const session = await mongoose.startSession();
+    session.startTransaction();
+
+    try {
+        const { userId } = req.params;
+
+        // Tìm người dùng
+        const user = await User.findById(userId);
+        if (!user) {
+            return res.status(404).json({ message: "User not found" });
+        }
+
+        // Xóa tất cả bài hát của nghệ sĩ
+        await Song.deleteMany({ artistId: userId }, { session });
+
+        // Xóa tất cả album của nghệ sĩ
+        await Album.deleteMany({ artistId: userId }, { session });
+
+        // Xóa người dùng
+        await User.findByIdAndDelete(userId, { session });
+
+        await session.commitTransaction();
+        res.status(200).json({ message: "User and associated content deleted successfully" });
+    } catch (error) {
+        await session.abortTransaction();
+        next(error);
+    } finally {
+        session.endSession();
+    }
+};
+
 export const checkAdmin = async (req, res, next) => {
 	res.status(200).json({ admin: true });
 };

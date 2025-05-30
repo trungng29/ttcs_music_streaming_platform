@@ -51,6 +51,7 @@ export interface User {
 	imageUrl: string;
 	artistInfo?: ArtistInfo;
 	likedSongs?: string[];
+	role?: "user" | "artist" | "admin";
 }
 
 
