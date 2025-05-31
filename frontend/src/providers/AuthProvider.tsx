@@ -27,21 +27,38 @@ const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   useEffect(() => {
     const initAuth = async () => {
       try {
-        const token = await getToken(); // gọi API lấy token
-        updateApiToken(token); // cập nhật token vào axios
+        const token = await getToken();
+        updateApiToken(token);
 
         if (token) {
-          await checkAdminStatus(); // kiểm tra xem có phải admin ko
+          await checkAdminStatus(token);
         }
       } catch (error: any) {
-        updateApiToken(null); // lỗi thì xóa token
+        updateApiToken(null);
         console.log("Error in auth provider", error);
       } finally {
-        setLoading(false); // hết loading
+        setLoading(false);
       }
     };
 
     initAuth();
+
+    // Thêm interval để tự động refresh token
+    const tokenRefreshInterval = setInterval(async () => {
+      try {
+        const token = await getToken();
+        if (token) {
+          updateApiToken(token);
+          await checkAdminStatus(token);
+        }
+      } catch (error) {
+        console.log("Error refreshing token", error);
+      }
+    }, 5 * 60 * 1000); // Refresh mỗi 5 phút
+
+    return () => {
+      clearInterval(tokenRefreshInterval);
+    };
   }, [getToken]);
 
   if (loading) {

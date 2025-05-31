@@ -10,14 +10,22 @@ import { useEffect } from "react";
 import { useMusicStore } from "@/stores/useMusicStore";
 import AddSongDialog from "./components/AddSongDialog";
 import AddAlbumDialog from "./components/AddAlbumDialog";
+import { useAuth } from "@clerk/clerk-react";
 
 const AdminPage = () => {
 	const { isAdmin, isArtist, isLoading, checkAdminStatus } = useAuthStore();
 	const { fetchAlbums, fetchSongs, fetchStats } = useMusicStore();
+	const { getToken } = useAuth();
 
 	useEffect(() => {
-		checkAdminStatus();
-	}, [checkAdminStatus]);
+		const checkStatus = async () => {
+			const token = await getToken();
+			if (token) {
+				await checkAdminStatus(token);
+			}
+		};
+		checkStatus();
+	}, [checkAdminStatus, getToken]);
 
 	useEffect(() => {
 		fetchAlbums();
