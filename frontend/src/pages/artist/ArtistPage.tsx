@@ -24,7 +24,7 @@ const ArtistPage = () => {
   if (!currentArtist) return <div>Đang tải thông tin nghệ sĩ...</div>;
 
   return (
-    <div className="relative h-[calc(100vh-180px)] overflow-hidden bg-gradient-to-b from-[#1e2746] via-[#232a3d] to-[#181c2b]">
+    <div className="relative h-full bg-gradient-to-b from-[#1e2746] via-[#232a3d] to-[#181c2b]">
       {/* Background blur giống Spotify */}
       <div
         className="absolute inset-0 -z-10 h-96 w-full overflow-hidden"
