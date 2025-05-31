@@ -1,5 +1,6 @@
 import { axiosInstance } from "@/lib/axios";
 import { useAuthStore } from "@/stores/useAuthStore";
+import { useChatStore } from "@/stores/useChatStore";
 import { useAuth } from "@clerk/clerk-react";
 import { Loader } from "lucide-react";
 import { useEffect, useState } from "react";
@@ -20,46 +21,60 @@ const updateApiToken = (token: string | null) => {
 
 // children là tất cả những component nằm bên trong AuthProvider
 const AuthProvider = ({ children }: { children: React.ReactNode }) => {
-  const { getToken } = useAuth();
+  const { getToken, userId } = useAuth();
   const [loading, setLoading] = useState(true);
   const { checkAdminStatus } = useAuthStore();
+  const { initSocket, disconnectSocket } = useChatStore();
 
   useEffect(() => {
+    let isMounted = true;
+
     const initAuth = async () => {
       try {
         const token = await getToken();
         updateApiToken(token);
 
-        if (token) {
+        if (token && userId && isMounted) {
           await checkAdminStatus(token);
+          console.log("Initializing socket with userId:", userId);
+          initSocket(userId);
         }
       } catch (error: any) {
+        console.error("Error in auth provider:", error);
         updateApiToken(null);
-        console.log("Error in auth provider", error);
+        if (isMounted) {
+          disconnectSocket();
+        }
       } finally {
-        setLoading(false);
+        if (isMounted) {
+          setLoading(false);
+        }
       }
     };
 
     initAuth();
 
-    // Thêm interval để tự động refresh token
     const tokenRefreshInterval = setInterval(async () => {
       try {
         const token = await getToken();
-        if (token) {
+        if (token && isMounted) {
           updateApiToken(token);
           await checkAdminStatus(token);
         }
       } catch (error) {
-        console.log("Error refreshing token", error);
+        console.error("Error refreshing token:", error);
+        if (isMounted) {
+          disconnectSocket();
+        }
       }
-    }, 5 * 60 * 1000); // Refresh mỗi 5 phút
+    }, 5 * 60 * 1000);
 
     return () => {
+      isMounted = false;
       clearInterval(tokenRefreshInterval);
+      disconnectSocket();
     };
-  }, [getToken]);
+  }, [getToken, userId, checkAdminStatus, initSocket, disconnectSocket]);
 
   if (loading) {
     return (
@@ -68,6 +83,7 @@ const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       </div>
     );
   }
+
   return <div>{children}</div>;
 };
 
