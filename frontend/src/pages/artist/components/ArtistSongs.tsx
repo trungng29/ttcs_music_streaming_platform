@@ -6,7 +6,6 @@ import { useAuth } from "@clerk/clerk-react";
 import { useState } from "react";
 import { jwtDecode } from "jwt-decode";
 import { toast } from "sonner";
-import { ScrollArea } from "@/components/ui/scroll-area";
 
 export const formatDuration = (seconds: number) => {
   const minutes = Math.floor(seconds / 60);
@@ -61,7 +60,7 @@ const ArtistSongs = () => {
           <span className="sr-only">Thời lượng</span>
         </div>
       </div>
-      <ScrollArea className="max-h-96 px-6">
+      <div className="px-6">
         <div className="space-y-2 py-4">
           {artistSongs.map((song, index) => {
             const isCurrentSong = currentSong?._id === song._id;
@@ -86,7 +85,7 @@ const ArtistSongs = () => {
                   <img src={song.imageUrl} alt={song.title} className="size-10" />
                   <div>
                     <div className="font-medium text-white">{song.title}</div>
-                    <div>{song.artist}</div>
+                    <div>{typeof song.artist === "string" ? song.artist : song.artist?.fullName}</div>
                   </div>
                 </div>
                 <div className="flex items-center">{song.createdAt ? song.createdAt.split("T")[0] : ""}</div>
@@ -109,7 +108,7 @@ const ArtistSongs = () => {
             );
           })}
         </div>
-      </ScrollArea>
+      </div>
     </div>
   );
 };
