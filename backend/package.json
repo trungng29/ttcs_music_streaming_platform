@@ -8,7 +8,9 @@
     "start": "node src/index.js",
     "seed:songs": "node src/seeds/songs.js",
     "seed:albums": "node src/seeds/albums.js",
-    "update:artist-ids": "node src/seeds/updateArtistIds.js"
+    "update:artist-ids": "node src/seeds/updateArtistIds.js",
+    "clear:db": "node src/seeds/clearDatabase.js",
+    "seed:wxrdie": "node src/seeds/wxrdie.seed.js"
   },
   "keywords": [],
   "author": "",
